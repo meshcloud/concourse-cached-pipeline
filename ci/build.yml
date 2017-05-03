@@ -9,6 +9,8 @@ image_resource:
 
 inputs:
 - name: repo
+- name: cache-a
+- name: cache-b
 
 outputs:
 - name: bin

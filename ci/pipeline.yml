@@ -13,18 +13,6 @@ resources:
     uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
     branch: master
 
-- name: github-develop
-  type: git
-  source: &github-develop
-    uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
-    branch: develop
-    
-- name: github-features
-  type: git-branch-heads
-  source: &github-features
-    uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
-    branches: ["feature/*"]
-
 jobs:
 - name: build-master
   plan:
