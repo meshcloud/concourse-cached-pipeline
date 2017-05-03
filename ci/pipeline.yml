@@ -1,0 +1,41 @@
+---
+resource_types:
+- name: git-branch-heads
+  type: docker-image
+  source:
+    repository: vito/git-branch-heads-resource
+
+resources:
+# Repos
+- name: github-master
+  type: git
+  source: &github-master # YAML anchor ;-)
+    uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
+    branch: master
+
+- name: github-develop
+  type: git
+  source: &github-develop
+    uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
+    branch: develop
+    
+- name: github-features
+  type: git-branch-heads
+  source: &github-features
+    uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
+    branches: ["feature/*"]
+
+jobs:
+- name: build-master
+  plan:
+
+  - get: repo
+    resource: github-master
+    trigger: true
+  - aggregate:
+    - task: cache-a
+      file: repo/ci/cache-a.yml
+    - task: cache-b
+      file: repo/ci/cache-b.yml
+  - task: build
+    file: repo/ci/build.yml  
