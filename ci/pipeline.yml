@@ -23,7 +23,11 @@ jobs:
   - aggregate:
     - task: cache-a
       file: repo/ci/cache-a.yml
+      output_mapping:
+        cache: cache-a
     - task: cache-b
       file: repo/ci/cache-b.yml
+      output_mapping:
+        cache: cache-b
   - task: build
     file: repo/ci/build.yml  
