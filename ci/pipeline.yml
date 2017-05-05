@@ -5,6 +5,12 @@ resource_types:
   source:
     repository: vito/git-branch-heads-resource
 
+- name: rsync-resource
+  type: docker-image
+  source:
+      repository: mrsixw/concourse-rsync-resource
+      tag: latest
+
 resources:
 # Repos
 - name: github-master
@@ -12,6 +18,15 @@ resources:
   source: &github-master # YAML anchor ;-)
     uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
     branch: master
+
+- name: rsync-cache
+  type: rsync-resource
+  source:
+    server: ci.dev.meshcloud.io
+    base_dir: /ccp-cache
+    user : www
+    private_key: {{artifacts-private-key}}
+    disable_version_path: true
 
 jobs:
 - name: build-master
@@ -29,5 +44,7 @@ jobs:
       file: repo/ci/cache-b.yml
       output_mapping:
         cache: cache-b
+  - put: rsync-cache
+    params: {"sync_dir" : "cache-a" }
   - task: build
     file: repo/ci/build.yml  
