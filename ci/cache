@@ -1,0 +1,58 @@
+#!/bin/bash
+
+echo "## 0. Build Info"
+echo "Pipeline/Job: $BUILD_PIPELINE_NAME/$BUILD_JOB_NAME" 1>&2
+
+GIT_REF=`./lastref $1`
+BUILD_CACHE=$2
+
+if [ -z "$SSH_HOST" ]; then echo "Error: SSH_HOST is unset"; exit 1; fi;
+if [ -z "$SSH_USER" ]; then echo "Error: SSH_HOST is unset"; exit 1; fi;
+if [ -z "$SSH_PRIVATE_KEY" ]; then echo "Error: SSH_PRIVATE_KEY is unset"; exit 1; fi;
+SSH_PORT=${SSH_PORT:-22}
+SSH_PATH=${SSH_PATH:-$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME}
+
+
+echo "## 1. Preparing SSH"
+
+mkdir ~/.ssh
+chmod 600 ~/.ssh
+echo ${SSH_PRIVATE_KEY} > ~/.ssh/server_key
+echo -e "Host $SSH_HOST\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+chmod 600 ~/.ssh/*
+
+eval $(ssh-agent) 1>&2 >/dev/null
+SSH_ASKPASS=/opt/resource/askpass.sh DISPLAY= ssh-add ~/.ssh/server_key 1>&2 >/dev/null
+
+echo "## 2. Preparing SSH"
+
+ if (ssh -t -i ~/.ssh/server_key -p $SSH_PORT $SSH_USER@$SSH_HOST '[ -d $SSH_PATH ]' ); then
+    RSYNC_CMD="rsync -Pav -e 'ssh -i ~/.ssh/server_key -p $SSH_PORT' $SSH_USER@$SSH_HOST:$SSH_PATH/* $DEST_DIR"
+    echo $RSYNC_CMD  1>&2
+    eval $RSYNC_CMD  1>&2
+    if [ $? -eq 0 ]; then
+        OUTPUT_STRING="{ \"version\": { \"ref\": \"$MD5_STRING\"} }"
+        echo $OUTPUT_STRING
+        exit 0
+    else
+      echo "Failed to rsync $SRC_DIR to $DEST_DIR" 1>&2
+      exit 1
+    fi
+  else
+    echo "Version $VERSION no longer available in $BASE_DIR"
+    exit 1
+  fi
+
+# 1) Check directory already exists
+
+# either limit depth or execute ssh command on remote
+
+
+# 2) If exists
+# rsync full cache down
+# exit 0
+
+# 3)
+# invoke build command, passed as $2
+# rsync to dest
+

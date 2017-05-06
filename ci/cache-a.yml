@@ -19,5 +19,4 @@ run:
   - -exc
   - |
     set
-    ls -laR
-    echo "done" > cache/a
+    cache **a.version "lastref **a.version > cache/a"

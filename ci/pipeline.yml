@@ -17,34 +17,29 @@ resources:
   type: git
   source: &github-master # YAML anchor ;-)
     uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
-    branch: master
-
-- name: rsync-cache
-  type: rsync-resource
-  source:
-    server: ci.dev.meshcloud.io
-    base_dir: /ccp-cache
-    user : www
-    private_key: {{artifacts-private-key}}
-    disable_version_path: true
+    branch: master    
 
 jobs:
+- name: cache-master
+  plan: 
+
+    - aggregate:
+      - task: cache-a
+        file: repo/ci/cache-a.yml
+        params:
+          SSH_HOST: "192.168.0.11"
+          SSH_PORT: "2222"
+          SSH_USER: "concoursebuilds"
+          SSH_PRIVATE_KEY: {{artifacts-private-key}}
+          SSH_PATH: concourse-cached-pipeline/cache-a
+        output_mapping:
+          cache: cache-a
+      - task: cache-b
+        file: repo/ci/cache-b.yml
+        output_mapping:
+          cache: cache-b
 - name: build-master
   plan:
-
   - get: repo
     resource: github-master
     trigger: true
-  - aggregate:
-    - task: cache-a
-      file: repo/ci/cache-a.yml
-      output_mapping:
-        cache: cache-a
-    - task: cache-b
-      file: repo/ci/cache-b.yml
-      output_mapping:
-        cache: cache-b
-  - put: rsync-cache
-    params: {"sync_dir" : "cache-a" }
-  - task: build
-    file: repo/ci/build.yml  
