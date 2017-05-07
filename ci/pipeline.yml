@@ -25,12 +25,14 @@ jobs:
       file: repo/ci/cache-a.yml
       params:
         BASE_URL: {{artifacts-url}}
+        CACHE_PATH: concourse-cached-pipeline/caches/build/a
       output_mapping:
         cache: cache-a
     - task: cache-b
       file: repo/ci/cache-b.yml
       params:
         BASE_URL: {{artifacts-url}}
+        CACHE_PATH: concourse-cached-pipeline/caches/build/b
       output_mapping:
         cache: cache-b
   - task: build

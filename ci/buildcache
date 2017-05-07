@@ -10,8 +10,8 @@ echo "GIT_REF=$GIT_REF"
 echo "BUILD_CACHE_CMD=$BUILD_CACHE_CMD"
 
 if [ -z "$BASE_URL" ]; then echo "Error: BASE_URL is unset"; exit 1; fi;
+if [ -z "$CACHE_PATH" ]; then echo "Error: CACHE_PATH is unset"; exit 1; fi;
 
-CACHE_PATH=${CACHE_PATH:-$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME}
 echo "Using cache path: $CACHE_PATH" 1>&2
 
 echo "## 1) Checking cache"
