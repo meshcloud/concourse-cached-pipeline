@@ -15,8 +15,10 @@ outputs:
 
 run:
   path: sh
+  dir: repo
   args:
   - -exc
   - |
     set
-    cache **a.version "lastref **a.version > cache/a"
+    GIT_REF=`ci/lastref **a.version`
+    ci/buildcache $GIT_REF "touch ../cache/a.txt"

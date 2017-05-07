@@ -5,41 +5,37 @@ resource_types:
   source:
     repository: vito/git-branch-heads-resource
 
-- name: rsync-resource
-  type: docker-image
-  source:
-      repository: mrsixw/concourse-rsync-resource
-      tag: latest
-
 resources:
 # Repos
 - name: github-master
   type: git
   source: &github-master # YAML anchor ;-)
     uri: https://github.com/Meshcloud/concourse-cached-pipeline.git
-    branch: master    
+    branch: master
 
 jobs:
 - name: cache-master
   plan: 
+  - get: repo
+    resource: github-master
+    trigger: true
+  - aggregate:
+    - task: cache-a
+      file: repo/ci/cache-a.yml
+      params:
+        BASE_URL: {{artifacts-url}}
+      output_mapping:
+        cache: cache-a
+    - task: cache-b
+      file: repo/ci/cache-b.yml
+      params:
+        BASE_URL: {{artifacts-url}}
+      output_mapping:
+        cache: cache-b
 
-    - aggregate:
-      - task: cache-a
-        file: repo/ci/cache-a.yml
-        params:
-          SSH_HOST: "192.168.0.11"
-          SSH_PORT: "2222"
-          SSH_USER: "concoursebuilds"
-          SSH_PRIVATE_KEY: {{artifacts-private-key}}
-          SSH_PATH: concourse-cached-pipeline/cache-a
-        output_mapping:
-          cache: cache-a
-      - task: cache-b
-        file: repo/ci/cache-b.yml
-        output_mapping:
-          cache: cache-b
 - name: build-master
   plan:
   - get: repo
+    passed: [cache-master]
     resource: github-master
     trigger: true

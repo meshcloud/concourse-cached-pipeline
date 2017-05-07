@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# expects BUILD_CACHE_CMD command to output files at ../cache
+
+echo "## 0) Build Info"
+GIT_REF="$1"
+BUILD_CACHE_CMD="$2"
+
+echo "GIT_REF=$GIT_REF"
+echo "BUILD_CACHE_CMD=$BUILD_CACHE_CMD"
+
+if [ -z "$BASE_URL" ]; then echo "Error: BASE_URL is unset"; exit 1; fi;
+
+CACHE_PATH=${CACHE_PATH:-$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME}
+echo "Using cache path: $CACHE_PATH" 1>&2
+
+echo "## 1) Checking cache"
+CACHE_FILE=$GIT_REF.tar.gz
+CACHE_FILEPATH=$CACHE_PATH/$CACHE_FILE
+CACHE_URL=$BASE_URL/$CACHE_FILEPATH
+
+if curl --silent --head --fail "$CACHE_URL"; then
+  echo "Build cache exists: $CACHE_FILEPATH"
+
+  echo "## 2) Downloading and extracting cache"
+  cd ../cache
+  curl "$CACHE_URL" --output "/tmp/$CACHE_FILE"
+  tar -xvzf /tmp/$CACHE_FILE
+else
+  echo "Build cache does not exist: $CACHE_FILEPATH"
+  
+  echo "## 2) Building cache"
+  $($BUILD_CACHE_CMD)
+  
+  echo "## 3) Uploading cache"
+  cd ../cache
+  tar -cvzf /tmp/$CACHE_FILE ./
+  curl "$CACHE_URL" --upload-file /tmp/$CACHE_FILE
+fi
+
