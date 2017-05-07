@@ -14,8 +14,9 @@ resources:
     branch: master
 
 jobs:
-- name: cache-master
-  plan: 
+ 
+- name: build-master
+  plan:
   - get: repo
     resource: github-master
     trigger: true
@@ -32,10 +33,5 @@ jobs:
         BASE_URL: {{artifacts-url}}
       output_mapping:
         cache: cache-b
-
-- name: build-master
-  plan:
-  - get: repo
-    passed: [cache-master]
-    resource: github-master
-    trigger: true
+  - task: build
+    file: repo/ci/build.yml
