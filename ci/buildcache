@@ -38,6 +38,10 @@ else
   cd ../cache
   tar -czf /tmp/$CACHE_FILE ./
   curl "$CACHE_URL" --upload-file /tmp/$CACHE_FILE
+
+  # check whether file was created successfully, e.g. the previous request failed with a 401
+  echo "## 4) Check cache successfully uploaded"
+  curl --silent --head --fail "$CACHE_URL"
 fi
 
 # we expect to be in the ../cache dir by now
