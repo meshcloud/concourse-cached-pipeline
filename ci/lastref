@@ -4,5 +4,5 @@ log_range="--reverse HEAD"
 paths_search="$1"
 
 {
-    git log $ci_skip --format='%H' --first-parent $log_range $paths_search
+    git log $ci_skip --format='%H' --first-parent $log_range -- "$paths_search"
 } | tail -n 1

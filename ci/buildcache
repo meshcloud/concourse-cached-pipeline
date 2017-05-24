@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # expects BUILD_CACHE_CMD command to output files at ../cache
 
@@ -25,16 +26,19 @@ if curl --silent --head --fail "$CACHE_URL"; then
   echo "## 2) Downloading and extracting cache"
   cd ../cache
   curl "$CACHE_URL" --output "/tmp/$CACHE_FILE"
-  tar -xvzf /tmp/$CACHE_FILE
+  tar -xzf /tmp/$CACHE_FILE
+
 else
   echo "Build cache does not exist: $CACHE_FILEPATH"
   
   echo "## 2) Building cache"
-  $($BUILD_CACHE_CMD)
+  eval $BUILD_CACHE_CMD
   
   echo "## 3) Uploading cache"
   cd ../cache
-  tar -cvzf /tmp/$CACHE_FILE ./
+  tar -czf /tmp/$CACHE_FILE ./
   curl "$CACHE_URL" --upload-file /tmp/$CACHE_FILE
 fi
 
+# we expect to be in the ../cache dir by now
+echo Downloaded $(du -hs ./ | cut -f1) in $(find ./ -type f | wc -l) files. >&2
